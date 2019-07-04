@@ -1,5 +1,14 @@
 @()
 
 @main("Welcome to Play") {
-  <h1>Welcome to Play!</h1>
+  <form action="@controllers.routes.HomeController.question()">
+    <h3>Select difficulty:</h3>
+    <input type="radio" name="difficulty" value="easy" checked> Easy
+    <input type="radio" name="difficulty" value="medium"> Medium
+    <input type="radio" name="difficulty" value="hard"> Hard <br/>
+    <h3>Select type:</h3>
+    <input type="radio" name="choice" value="multiple"> Multiple choice
+    <input type="radio" name="choice" value="boolean"> True/False <br/>
+    <button>Get question</button>
+  </form>
 }

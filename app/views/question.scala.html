@@ -1,0 +1,17 @@
+
+@(questionData : Question)
+
+<h1>   @questionData.question ? </h1>
+<form action="@controllers.routes.HomeController.index()">
+@if(questionData.`type` == "boolean"){
+    <button>@questionData.correct_answer</button>
+    <button>@questionData.incorrect_answers(0)</button>
+}
+@if(questionData.`type` == "multiple") {
+    <button>@questionData.correct_answer</button>
+    <button>@questionData.incorrect_answers(0)</button>
+    <button>@questionData.incorrect_answers(1)</button>
+    <button>@questionData.incorrect_answers(2)</button>
+}
+</form>
+
