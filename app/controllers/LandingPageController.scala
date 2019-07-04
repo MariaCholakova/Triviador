@@ -1,7 +1,6 @@
 package controllers
 
 import javax.inject._
-import play.api._
 import play.api.mvc._
 import play.api.libs.json._
 
@@ -13,35 +12,38 @@ import play.api.http.HttpEntity
 import play.api.data.Form
 import play.api.data.Forms._
 import scala.concurrent.ExecutionContext
+import scala.util.Random
 
 case class Question(category: String, `type`: String, difficulty: String, question: String,
   correct_answer: String, incorrect_answers: List[String] )
 case class QuestionParam(difficulty: String, choice: String)
-/**
- * This controller creates an `Action` to handle HTTP requests to the
- * application's home page.
- */
+
+
 @Singleton
-class HomeController @Inject()(ws: WSClient, implicit val ec:ExecutionContext,  cc: ControllerComponents) extends AbstractController(cc) {
-  //implicit val context = play.api.libs.concurrent.Execution.Implicits.defaultContext
-  /**
-   * Create an Action to render an HTML page.
-   *
-   * The configuration in the `routes` file means that this method
-   * will be called when the application receives a `GET` request with
-   * a path of `/`.
-   */
-  def index() = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.index())
-  }
+class LandingPageController @Inject()(
+    ws: WSClient,
+    implicit val ec : ExecutionContext,
+    cc: ControllerComponents,
+    authenticatedUserAction: AuthenticatedUserAction
+) extends AbstractController(cc) {
 
+    private val logoutUrl = routes.AuthenticatedUserController.logout
 
-  val questionForm: Form[QuestionParam] = Form {
-    mapping (
-      "difficulty" -> text,
-      "choice" -> text
-    ) (QuestionParam.apply _) (QuestionParam.unapply _)
-  }
+    // this is where the user comes immediately after logging in.
+    // notice that this uses `authenticatedUserAction`.
+    def showLandingPage() = authenticatedUserAction { implicit request: Request[AnyContent] =>
+        Ok(views.html.loginLandingPage(logoutUrl))
+    }
+
+    def getRandomElement(list: Seq[Int], random: Random): Int = 
+    list(random.nextInt(list.length))
+
+    val questionForm: Form[QuestionParam] = Form {
+        mapping (
+        "difficulty" -> text,
+        "choice" -> text
+        ) (QuestionParam.apply _) (QuestionParam.unapply _)
+    }
 
   implicit val questionReads = Json.reads[Question]
 
@@ -51,6 +53,7 @@ class HomeController @Inject()(ws: WSClient, implicit val ec:ExecutionContext,  
     val url = "https://opentdb.com/api.php"
     ws.url(url).addQueryStringParameters(
         "amount" -> "1",
+        "category" ->  getRandomElement(List.range(17,29,1), new Random).toString,
         "difficulty" -> questionParam.difficulty,
         "type" -> questionParam.choice
       ).get().map(
@@ -72,6 +75,5 @@ class HomeController @Inject()(ws: WSClient, implicit val ec:ExecutionContext,  
 
   }
 
-
-
 }
+

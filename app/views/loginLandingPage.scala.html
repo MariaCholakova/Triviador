@@ -1,0 +1,24 @@
+@(logoutUrl: Call)(implicit flash: Flash)
+
+@main("Welcome to Play") {
+    <h1>Welcome to Play!</h1>
+
+    @* show the flash message (Option 1) *@
+    @flash.get("info").getOrElse("")
+
+    <div>
+        <form action="@controllers.routes.LandingPageController.question()">
+            <h3>Login</h3>
+            <input type="radio" name="difficulty" value="easy" checked> Easy
+            <input type="radio" name="difficulty" value="medium"> Medium
+            <input type="radio" name="difficulty" value="hard"> Hard <br/>
+            <h3>Select type:</h3>
+            <input type="radio" name="choice" value="multiple" checked> Multiple choice
+            <input type="radio" name="choice" value="boolean"> True/False <br/>
+            <button>Get question</button>
+        </form>
+        <br/>
+        <a href="@logoutUrl">logout</a>
+    </div>
+
+}

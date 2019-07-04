@@ -1,8 +1,8 @@
 
 @(questionData : Question)
-
-<h1>   @questionData.question ? </h1>
-<form action="@controllers.routes.HomeController.index()">
+<p> @questionData.category </p>
+<h1>   @questionData.question </h1>
+<form action="@controllers.routes.LandingPageController.showLandingPage()">
 @if(questionData.`type` == "boolean"){
     <button>@questionData.correct_answer</button>
     <button>@questionData.incorrect_answers(0)</button>
