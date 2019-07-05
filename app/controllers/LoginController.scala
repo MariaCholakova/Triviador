@@ -10,7 +10,7 @@ import play.api.libs.json._
 import scala.concurrent.{ ExecutionContext, Future , Await}
 import scala.concurrent.duration._
 
-class UserController @Inject()(
+class LoginController @Inject()(
     cc: MessagesControllerComponents,
     implicit val ec : ExecutionContext,
     userMongoController: UserMongoController
@@ -29,7 +29,7 @@ class UserController @Inject()(
         )(User.apply)(User.unapply)
     )
 
-    private val formSubmitUrl = routes.UserController.processLoginAttempt
+    private val formSubmitUrl = routes.LoginController.processLoginAttempt
 
     def showLoginForm = Action { implicit request: MessagesRequest[AnyContent] =>
         Ok(views.html.userLogin(form, formSubmitUrl))
@@ -48,7 +48,7 @@ class UserController @Inject()(
                     .flashing("info" -> "You are logged in.")
                     .withSession(Global.SESSION_USERNAME_KEY -> user.username)
             } else {
-                Redirect(routes.UserController.showLoginForm)
+                Redirect(routes.LoginController.showLoginForm)
                     .flashing("error" -> "Invalid username/password.")
             }
         }

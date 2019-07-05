@@ -9,8 +9,8 @@
 GET  /assets/*file              controllers.Assets.versioned(path="/public", file: Asset)
 
 # user/admin stuff
-GET  /                          controllers.UserController.showLoginForm
-POST /doLogin                   controllers.UserController.processLoginAttempt
+GET  /                          controllers.LoginController.showLoginForm
+POST /doLogin                   controllers.LoginController.processLoginAttempt
 
 # pages for authenticated users
 GET  /logout                    controllers.AuthenticatedUserController.logout
