@@ -1,11 +1,11 @@
-name := """LoginAuthenticationExample"""
-organization := "com.alvinalexander"
+name := """Triviador"""
+organization := "student"
 
 version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := "2.12.4"
+scalaVersion := "2.12.7"
 
 
 // @see https://mvnrepository.com/artifact/mysql/mysql-connector-java
@@ -18,6 +18,9 @@ libraryDependencies ++= Seq(
 )
 
 libraryDependencies += ws
+libraryDependencies ++= Seq(
+  "org.reactivemongo" % "play2-reactivemongo_2.12" % "0.17.1-play27"
+)
 
 javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
@@ -28,7 +31,7 @@ initialize := {
 }
 
 // Adds additional packages into Twirl
-//TwirlKeys.templateImports += "com.alvinalexander.controllers._"
+//TwirlKeys.templateImports += "student.controllers._"
 
 // Adds additional packages into conf/routes
-// play.sbt.routes.RoutesKeys.routesImport += "com.alvinalexander.binders._"
+// play.sbt.routes.RoutesKeys.routesImport += "student.binders._"

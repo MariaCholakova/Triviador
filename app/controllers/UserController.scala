@@ -1,14 +1,19 @@
 package controllers
 
 import javax.inject.Inject
-import models.{Global, User, UserDB}
+import models.{Global, User}
 import play.api.data.Forms._
 import play.api.data._
 import play.api.mvc._
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
+import scala.concurrent.{ ExecutionContext, Future , Await}
+import scala.concurrent.duration._
 
 class UserController @Inject()(
     cc: MessagesControllerComponents,
-    userDB: UserDB
+    implicit val ec : ExecutionContext,
+    userMongoController: UserMongoController
 ) extends MessagesAbstractController(cc) {
 
     private val logger = play.api.Logger(this.getClass)
@@ -37,7 +42,7 @@ class UserController @Inject()(
         }
         val successFunction = { user: User =>
             // form validation/binding succeeded ...
-            val foundUser: Boolean = userDB.lookupUser(user)
+            val foundUser = Await.result(userMongoController.lookupUser(user), Duration.Inf)
             if (foundUser) {
                 Redirect(routes.LandingPageController.showLandingPage)
                     .flashing("info" -> "You are logged in.")
