@@ -7,11 +7,11 @@
     <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
 </head>
 
-<body id="user-login">
+<body id="user-login" class="center">
     <h3> Category: @questionData.category </h3>
-    <h1> @questionData.question </h1>
+    <h1 class="text-center"> @questionData.question </h1>
     @for(answer <- answers) {
-        <form action="@controllers.routes.LandingPageController.processAnswer()">
+        <form class="text-center"action="@controllers.routes.LandingPageController.processAnswer()">
             <input type="hidden" name="difficulty" value="@questionData.difficulty">
             <input type= "hidden" name="isCorrect" value="@answer.isCorrect">
             <button id="@answer.text" data-correct="@answer.isCorrect">@answer.text - @answer.isCorrect</button>

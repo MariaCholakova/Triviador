@@ -1,14 +1,13 @@
 @(logoutUrl: Call)(implicit flash: Flash)
 
 @main("Welcome to Play") {
-    <h1>Welcome to Play!</h1>
-
+    
     @* show the flash message (Option 1) *@
     @flash.get("info").getOrElse("")
-
-    <div>
+    
+    <div class="center">
+        <h1>Welcome to the Quizz!</h1>
         <form action="@controllers.routes.LandingPageController.question()">
-            <h3>Login</h3>
             <input type="radio" name="difficulty" value="easy" checked> Easy
             <input type="radio" name="difficulty" value="medium"> Medium
             <input type="radio" name="difficulty" value="hard"> Hard <br/>
@@ -18,7 +17,8 @@
             <button>Get question</button>
         </form>
         <br/>
-        <a href="@logoutUrl">logout</a>
+        <a href="@controllers.routes.UserMongoController.getRankList()">Rank List</a>
+        <a href="@logoutUrl">Log Out</a>
     </div>
 
 }

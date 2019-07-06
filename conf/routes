@@ -11,6 +11,7 @@ GET  /assets/*file              controllers.Assets.versioned(path="/public", fil
 # user/admin stuff
 GET  /                          controllers.LoginController.showLoginForm
 POST /doLogin                   controllers.LoginController.processLoginAttempt
+GET  /ranklist                  controllers.UserMongoController.getRankList
 
 # pages for authenticated users
 GET  /logout                    controllers.AuthenticatedUserController.logout
@@ -19,5 +20,6 @@ GET  /landingPage               controllers.LandingPageController.showLandingPag
 # pages for question
 GET     /question               controllers.LandingPageController.question
 GET     /answer                 controllers.LandingPageController.processAnswer
+
 
 

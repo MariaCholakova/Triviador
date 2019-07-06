@@ -12,8 +12,8 @@
 </head>
 <body>
     <h1 class="@answerType">@answerType</h1>
-    <h1>Your points are: @points</h1>
-    <form action="@controllers.routes.LandingPageController.showLandingPage()">
+    <h1 class="text-center">Your points are: @points</h1>
+    <form class="text-center" action="@controllers.routes.LandingPageController.showLandingPage()">
         @if(answerType == "correct") {
             <button>Get more points!</button>
         }

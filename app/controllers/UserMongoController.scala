@@ -47,7 +47,6 @@ class UserMongoController @Inject()(
         } yield option
         userOption map {
             case Some(User(_,_,_)) => {
-                println("yes")
                 true
             }
             case None => false
@@ -79,8 +78,23 @@ class UserMongoController @Inject()(
             }
             case None => 0
         }
-    
     }
+
+    def getRankList = Action.async {
+        val userList = for {
+            col <- collection
+            users <- col.find(Json.obj())
+                .sort(Json.obj("points" -> -1))
+                .cursor[User]()
+                .collect[List](-1, Cursor.FailOnError[List[User]]())
+        } yield users
+        userList map {
+            ul => Ok(views.html.ranking(ul))
+        } recover {
+            case _ => Ok(views.html.error())
+        }
+            
+    }  
   
 
 }

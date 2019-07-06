@@ -1,11 +1,51 @@
 .wrong {
     background-color: red;
     color: white;
+    text-align: center;
 }
 
 .correct {
     background-color: green;
     color: white;
+    text-align: center;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.center {
+    margin: auto;
+    width: 90%;
+}
+
+#rankingTitle {
+    text-align: center;
+    width: 70%;
+}
+
+button {
+    height: 40px;
+    background-color:#cceeff;
+    font-size: 20px;
+    border-radius: 8px;
+}
+
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 80%;
+}
+
+th {
+    background-color: #cceeff;
+    border: 1px solid;
+    text-align: left;
+    padding: 8px;
+}
+ 
+td {
+    border: 1px solid;
 }
 
 
