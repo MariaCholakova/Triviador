@@ -11,7 +11,7 @@ import play.api.libs.ws._
 import play.api.http.HttpEntity
 import play.api.data.Form
 import play.api.data.Forms._
-import scala.concurrent.{ Future, ExecutionContext }
+import scala.concurrent.{ Future, ExecutionContext, Await }
 import scala.util.Random
 
 import models.{Global, User, News}
@@ -21,6 +21,7 @@ case class Question(category: String, `type`: String, difficulty: String, questi
 case class QuestionParam(difficulty: String, choice: String)
 case class Answer(text: String, isCorrect: Int)
 case class AnswerParam(difficulty: String, isCorrect: Int)
+case class NoUserFoundException(id: Long) extends Exception
 
 
 @Singleton
@@ -36,9 +37,22 @@ class LandingPageController @Inject()(
 
     // this is where the user comes immediately after logging in.
     // notice that this uses `authenticatedUserAction`.
-    def showLandingPage() = authenticatedUserAction { implicit request: Request[AnyContent] =>
+    def showLandingPage() = authenticatedUserAction.async { implicit request: Request[AnyContent] =>
       // fetch new for the user
-      Ok(views.html.loginLandingPage(List[News](), logoutUrl))
+      val userNews = for {
+        name <- request.session.get(models.Global.SESSION_USERNAME_KEY)
+      } yield for {
+        user <- userMongoController.lookupUser(name) flatMap (
+          // handle Option (Future[Option[User]] => Future[User])
+          _.map(user => Future.successful(user))
+          .getOrElse(Future.failed(new RuntimeException("Could not find user")))
+        )
+        news <- userMongoController.getNewsForUser(user.username)
+      } yield news 
+      userNews.map(_.map (
+        news =>  Ok(views.html.loginLandingPage(news, logoutUrl))
+      )).getOrElse(Future.successful(Ok(views.html.error())))
+      
     }
 
     def getRandomElement(list: Seq[Int], random: Random): Int = 

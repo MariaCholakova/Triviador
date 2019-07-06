@@ -11,12 +11,13 @@
         <table>
             @for(newsEntry <- news) {
                 <div>
-                    <p class="news-date">@newsEntry.date</p>
+                    <p class="news-date">@newsEntry.getDate</p>
                     <p class="news-text">@newsEntry.text</p>
                 </div>
             }
         </table>
         <br/>
+        <h3>Choose question</h3>
         <form action="@controllers.routes.LandingPageController.question()">
             <input type="radio" name="difficulty" value="easy" checked> Easy
             <input type="radio" name="difficulty" value="medium"> Medium

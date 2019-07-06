@@ -34,12 +34,12 @@ class UserMongoController @Inject()(
         database.map(_.collection[JSONCollection]("news"))
 
     implicit val userFormat = Json.format[User]
-    def lookupUser(user: LoginUser): Future[Option[User]] = {
+    def lookupUser(username: String, password: String = ""): Future[Option[User]] = {
+        val query = if (password != "") Json.obj("username" -> username,"password" -> password)
+            else Json.obj("username" -> username)
         val userOption : Future[Option[User]] = for {
             col <- userCollection
-            option <- col.find(Json.obj(
-                "username" -> user.username,
-                "password" -> user.password)).one[User]
+            option <- col.find(query).one[User]
         } yield option
         userOption
     }
@@ -88,10 +88,10 @@ class UserMongoController @Inject()(
     }  
 
     implicit val newsFormat = Json.format[News]
-    def getNewsForUser(userId: JsObject) : Future[List[News]] = {
+    def getNewsForUser(user: String) : Future[List[News]] = {
         val newsList = for {
             col <- newsCollection
-            news <- col.find(Json.obj("user_id" -> userId))
+            news <- col.find(Json.obj("user" -> user))
                 .sort(Json.obj("date" -> -1))
                 .cursor[News]()
                 .collect[List](-1, Cursor.FailOnError[List[News]]())
