@@ -10,6 +10,19 @@
     text-align: center;
 }
 
+.news-text {
+    padding : 10px;
+    border-bottom: 1px solid black;
+    margin : 0;
+}
+
+.news-date {
+    font-weight : bold;
+    padding : 0 10px;
+    background: #cceeff;
+    margin : 20px 0 0 0;
+}
+
 .text-center {
     text-align: center;
 }
@@ -40,12 +53,13 @@ table {
 th {
     background-color: #cceeff;
     border: 1px solid;
-    text-align: left;
+    text-align: center;
     padding: 8px;
 }
  
 td {
     border: 1px solid;
+    text-align: center;
 }
 
 

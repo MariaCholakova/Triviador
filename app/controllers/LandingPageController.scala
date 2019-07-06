@@ -14,7 +14,7 @@ import play.api.data.Forms._
 import scala.concurrent.{ Future, ExecutionContext }
 import scala.util.Random
 
-import models.{Global, User}
+import models.{Global, User, News}
 
 case class Question(category: String, `type`: String, difficulty: String, question: String,
   correct_answer: String, incorrect_answers: List[String] )
@@ -37,7 +37,8 @@ class LandingPageController @Inject()(
     // this is where the user comes immediately after logging in.
     // notice that this uses `authenticatedUserAction`.
     def showLandingPage() = authenticatedUserAction { implicit request: Request[AnyContent] =>
-        Ok(views.html.loginLandingPage(logoutUrl))
+      // fetch new for the user
+      Ok(views.html.loginLandingPage(List[News](), logoutUrl))
     }
 
     def getRandomElement(list: Seq[Int], random: Random): Int = 
@@ -96,12 +97,6 @@ class LandingPageController @Inject()(
       case "hard" => if (answer.isCorrect == 1) 15 else 0
       case _ => 0
     }
-    // val username = request.session.get(models.Global.SESSION_USERNAME_KEY)
-    // println("user: " ++ username ++ " , points: " ++ pointsWon.toString)
-    // val updatedPoints = username match {
-    //   case Some(u) => userMongoController.increasePoints(u, pointsWon)
-    //   case None => 0
-    // }
     val pointsOption = for {
       username <- request.session.get(models.Global.SESSION_USERNAME_KEY)
     } yield for {

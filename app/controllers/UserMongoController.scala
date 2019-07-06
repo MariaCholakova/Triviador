@@ -1,6 +1,6 @@
 package controllers
 import javax.inject.Inject
-import models.{ Global, User, LoginUser }
+import models.{ Global, User, LoginUser, News }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -28,29 +28,20 @@ class UserMongoController @Inject()(
     val reactiveMongoApi: ReactiveMongoApi,
 ) extends AbstractController(cc) with MongoController with ReactiveMongoComponents {
     
-    def collection: Future[JSONCollection] =
+    def userCollection: Future[JSONCollection] =
         database.map(_.collection[JSONCollection]("users"))
+    def newsCollection: Future[JSONCollection] =
+        database.map(_.collection[JSONCollection]("news"))
 
     implicit val userFormat = Json.format[User]
-    // implicit val userReads: Reads[User] = (
-    //     (JsPath \ "username").read[String] and
-    //     (JsPath \ "password").read[String] and
-    //     (JsPath \ "points").read[Int]
-    // )(User.apply _)
-
-    def lookupUser(user: LoginUser): Future[Boolean] = {
+    def lookupUser(user: LoginUser): Future[Option[User]] = {
         val userOption : Future[Option[User]] = for {
-            col <- collection
+            col <- userCollection
             option <- col.find(Json.obj(
                 "username" -> user.username,
                 "password" -> user.password)).one[User]
         } yield option
-        userOption map {
-            case Some(User(_,_,_)) => {
-                true
-            }
-            case None => false
-        }
+        userOption
     }
 
     def increasePoints(username: String, pointsToAdd: Int) : Future[Int] = {
@@ -63,7 +54,7 @@ class UserMongoController @Inject()(
         val selector = Json.obj("username" -> username)
 
         val userOption = for {
-            col <- collection
+            col <- userCollection
             findOption <- col.find(selector).one[User]
         } yield findOption
 
@@ -71,7 +62,7 @@ class UserMongoController @Inject()(
             case Some(User(a, b, points)) => {
                 val newPoints = points + pointsToAdd
                 println(newPoints)
-                collection.map(_.update.one(selector, modifier(newPoints),
+                userCollection.map(_.update.one(selector, modifier(newPoints),
                     upsert = false, multi = false
                 ))
                 newPoints
@@ -82,7 +73,7 @@ class UserMongoController @Inject()(
 
     def getRankList = Action.async {
         val userList = for {
-            col <- collection
+            col <- userCollection
             users <- col.find(Json.obj())
                 .sort(Json.obj("points" -> -1))
                 .cursor[User]()
@@ -94,6 +85,18 @@ class UserMongoController @Inject()(
             case _ => Ok(views.html.error())
         }
             
+    }  
+
+    implicit val newsFormat = Json.format[News]
+    def getNewsForUser(userId: JsObject) : Future[List[News]] = {
+        val newsList = for {
+            col <- newsCollection
+            news <- col.find(Json.obj("user_id" -> userId))
+                .sort(Json.obj("date" -> -1))
+                .cursor[News]()
+                .collect[List](-1, Cursor.FailOnError[List[News]]())
+        } yield news
+        newsList    
     }  
   
 

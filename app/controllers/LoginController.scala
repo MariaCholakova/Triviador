@@ -42,14 +42,12 @@ class LoginController @Inject()(
         }
         val successFunction = { user: LoginUser =>
             // form validation/binding succeeded ...
-            val foundUser = Await.result(userMongoController.lookupUser(user), Duration.Inf)
-            println("afyer await")
-            if (foundUser) {
-                Redirect(routes.LandingPageController.showLandingPage)
-                    .flashing("info" -> "You are logged in.")
+            val foundUser : Option[User] = Await.result(userMongoController.lookupUser(user), Duration.Inf)
+            foundUser match {
+                case Some(User(name, _, points)) => Redirect(routes.LandingPageController.showLandingPage)
+                    .flashing("info" -> s"Dear $name, welcome to the game!\nYou have $points points")
                     .withSession(Global.SESSION_USERNAME_KEY -> user.username)
-            } else {
-                Redirect(routes.LoginController.showLoginForm)
+                case None => Redirect(routes.LoginController.showLoginForm)
                     .flashing("error" -> "Invalid username/password.")
             }
         }

@@ -1,4 +1,4 @@
-@(logoutUrl: Call)(implicit flash: Flash)
+@(news: List[News], logoutUrl: Call)(implicit flash: Flash)
 
 @main("Welcome to Play") {
     
@@ -6,7 +6,17 @@
     @flash.get("info").getOrElse("")
     
     <div class="center">
-        <h1>Welcome to the Quizz!</h1>
+        <h1> @flash.get("info").getOrElse("")</h1>
+        <h3>News</h3>
+        <table>
+            @for(newsEntry <- news) {
+                <div>
+                    <p class="news-date">@newsEntry.date</p>
+                    <p class="news-text">@newsEntry.text</p>
+                </div>
+            }
+        </table>
+        <br/>
         <form action="@controllers.routes.LandingPageController.question()">
             <input type="radio" name="difficulty" value="easy" checked> Easy
             <input type="radio" name="difficulty" value="medium"> Medium
