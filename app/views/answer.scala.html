@@ -1,0 +1,26 @@
+@(answerType: String, points: Int)
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
+    <script>
+        setTimeout(function () {
+            window.location.href = "question";
+        }, 2000);
+    </script>
+</head>
+<body>
+    <h1 class="@answerType">@answerType</h1>
+    <h1>Your points are: @points</h1>
+    <form action="@controllers.routes.LandingPageController.showLandingPage()">
+        @if(answerType == "correct") {
+            <button>Get more points!</button>
+        }
+        @if(answerType == "wrong") {
+            <button>Try again!</button>
+        }
+    </form>
+    
+</body>
+</html>

@@ -1,7 +1,7 @@
 package controllers
 
 import javax.inject.Inject
-import models.{Global, User}
+import models.{Global, LoginUser, User}
 import play.api.data.Forms._
 import play.api.data._
 import play.api.mvc._
@@ -18,7 +18,7 @@ class LoginController @Inject()(
 
     private val logger = play.api.Logger(this.getClass)
 
-    val form: Form[User] = Form (
+    val form: Form[LoginUser] = Form (
         mapping(
             "username" -> nonEmptyText
                 .verifying("too few chars",  s => lengthIsGreaterThanNCharacters(s, 2))
@@ -26,7 +26,7 @@ class LoginController @Inject()(
             "password" -> nonEmptyText
                 .verifying("too few chars",  s => lengthIsGreaterThanNCharacters(s, 2))
                 .verifying("too many chars", s => lengthIsLessThanNCharacters(s, 30)),
-        )(User.apply)(User.unapply)
+        )(LoginUser.apply)(LoginUser.unapply)
     )
 
     private val formSubmitUrl = routes.LoginController.processLoginAttempt
@@ -36,13 +36,14 @@ class LoginController @Inject()(
     }
 
     def processLoginAttempt = Action { implicit request: MessagesRequest[AnyContent] =>
-        val errorFunction = { formWithErrors: Form[User] =>
+        val errorFunction = { formWithErrors: Form[LoginUser] =>
             // form validation/binding failed...
             BadRequest(views.html.userLogin(formWithErrors, formSubmitUrl))
         }
-        val successFunction = { user: User =>
+        val successFunction = { user: LoginUser =>
             // form validation/binding succeeded ...
             val foundUser = Await.result(userMongoController.lookupUser(user), Duration.Inf)
+            println("afyer await")
             if (foundUser) {
                 Redirect(routes.LandingPageController.showLandingPage)
                     .flashing("info" -> "You are logged in.")
@@ -52,7 +53,7 @@ class LoginController @Inject()(
                     .flashing("error" -> "Invalid username/password.")
             }
         }
-        val formValidationResult: Form[User] = form.bindFromRequest
+        val formValidationResult: Form[LoginUser] = form.bindFromRequest
         formValidationResult.fold(
             errorFunction,
             successFunction

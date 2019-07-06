@@ -18,5 +18,6 @@ GET  /landingPage               controllers.LandingPageController.showLandingPag
 
 # pages for question
 GET     /question               controllers.LandingPageController.question
+GET     /answer                 controllers.LandingPageController.processAnswer
 
 

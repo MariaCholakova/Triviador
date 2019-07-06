@@ -11,12 +11,16 @@ import play.api.libs.ws._
 import play.api.http.HttpEntity
 import play.api.data.Form
 import play.api.data.Forms._
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ Future, ExecutionContext }
 import scala.util.Random
+
+import models.{Global, User}
 
 case class Question(category: String, `type`: String, difficulty: String, question: String,
   correct_answer: String, incorrect_answers: List[String] )
 case class QuestionParam(difficulty: String, choice: String)
+case class Answer(text: String, isCorrect: Int)
+case class AnswerParam(difficulty: String, isCorrect: Int)
 
 
 @Singleton
@@ -24,7 +28,8 @@ class LandingPageController @Inject()(
     ws: WSClient,
     implicit val ec : ExecutionContext,
     cc: ControllerComponents,
-    authenticatedUserAction: AuthenticatedUserAction
+    authenticatedUserAction: AuthenticatedUserAction,
+    userMongoController: UserMongoController
 ) extends AbstractController(cc) {
 
     private val logoutUrl = routes.AuthenticatedUserController.logout
@@ -63,7 +68,9 @@ class LandingPageController @Inject()(
               case s: JsSuccess[List[Question]] => {
                 val qs: List[Question] = s.get
                 println(qs)
-                Ok(views.html.question(qs(0)))
+                val answers = qs(0).incorrect_answers.map(str => Answer(str, 0)) ++ 
+                  List(Answer(qs(0).correct_answer, 1))
+                Ok(views.html.question(qs(0), Random.shuffle(answers)))
               }
               case e: JsError => Ok(views.html.error())
             }
@@ -74,6 +81,42 @@ class LandingPageController @Inject()(
       )
 
   }
+
+  val answerForm: Form[AnswerParam] = Form {
+        mapping (
+        "difficulty" -> text,
+        "isCorrect" -> number
+        ) (AnswerParam.apply _) (AnswerParam.unapply _)
+    }
+  def processAnswer = Action.async { implicit request: Request[AnyContent] =>
+    val answer =  answerForm.bindFromRequest.get
+    val pointsWon = answer.difficulty match {
+      case "easy" => if (answer.isCorrect == 1) 5 else 0
+      case "medium" => if (answer.isCorrect == 1) 10 else 0
+      case "hard" => if (answer.isCorrect == 1) 15 else 0
+      case _ => 0
+    }
+    // val username = request.session.get(models.Global.SESSION_USERNAME_KEY)
+    // println("user: " ++ username ++ " , points: " ++ pointsWon.toString)
+    // val updatedPoints = username match {
+    //   case Some(u) => userMongoController.increasePoints(u, pointsWon)
+    //   case None => 0
+    // }
+    val pointsOption = for {
+      username <- request.session.get(models.Global.SESSION_USERNAME_KEY)
+    } yield for {
+      points <- userMongoController.increasePoints(username, pointsWon)
+    } yield points
+  
+    pointsOption match {
+      case Some(pf) => pf map {
+        p => Ok(views.html.answer(if(answer.isCorrect == 1) "correct" else "wrong", p))
+      }
+      case None => Future.successful(Ok(views.html.error()))
+    } 
+    
+  }
+
 
 }
 

@@ -1,17 +1,21 @@
 
-@(questionData : Question)
-<p> @questionData.category </p>
-<h1>   @questionData.question </h1>
-<form action="@controllers.routes.LandingPageController.showLandingPage()">
-@if(questionData.`type` == "boolean"){
-    <button>@questionData.correct_answer</button>
-    <button>@questionData.incorrect_answers(0)</button>
-}
-@if(questionData.`type` == "multiple") {
-    <button>@questionData.correct_answer</button>
-    <button>@questionData.incorrect_answers(0)</button>
-    <button>@questionData.incorrect_answers(1)</button>
-    <button>@questionData.incorrect_answers(2)</button>
-}
-</form>
+@(questionData : Question, answers: List[Answer])
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
+</head>
+
+<body id="user-login">
+    <h3> Category: @questionData.category </h3>
+    <h1> @questionData.question </h1>
+    @for(answer <- answers) {
+        <form action="@controllers.routes.LandingPageController.processAnswer()">
+            <input type="hidden" name="difficulty" value="@questionData.difficulty">
+            <input type= "hidden" name="isCorrect" value="@answer.isCorrect">
+            <button id="@answer.text" data-correct="@answer.isCorrect">@answer.text - @answer.isCorrect</button>
+        </form>
+    }
+</body>
+</html>
