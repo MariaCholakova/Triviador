@@ -2,9 +2,6 @@
 
 @main("Welcome to Play") {
     
-    @* show the flash message (Option 1) *@
-    @flash.get("info").getOrElse("")
-    
     <div class="center">
         <h1> @flash.get("info").getOrElse("")</h1>
         <h3>News</h3>

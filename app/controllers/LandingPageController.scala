@@ -105,25 +105,43 @@ class LandingPageController @Inject()(
     }
   def processAnswer = Action.async { implicit request: Request[AnyContent] =>
     val answer =  answerForm.bindFromRequest.get
-    val pointsWon = answer.difficulty match {
-      case "easy" => if (answer.isCorrect == 1) 5 else 0
-      case "medium" => if (answer.isCorrect == 1) 10 else 0
-      case "hard" => if (answer.isCorrect == 1) 15 else 0
-      case _ => 0
-    }
-    val pointsOption = for {
-      username <- request.session.get(models.Global.SESSION_USERNAME_KEY)
-    } yield for {
-      points <- userMongoController.increasePoints(username, pointsWon)
-    } yield points
-  
-    pointsOption match {
-      case Some(pf) => pf map {
-        p => Ok(views.html.answer(if(answer.isCorrect == 1) "correct" else "wrong", p))
+
+    answer.isCorrect match {
+      case 1 => {
+        val pointsWon = answer.difficulty match {
+          case "easy" => 5
+          case "medium" => 10 
+          case "hard" => 15
+          case _ => 0
+        }
+        val pointsOption = for {
+          username <- request.session.get(models.Global.SESSION_USERNAME_KEY)
+        } yield for {
+          points <- userMongoController.increasePoints(username, pointsWon)
+        } yield points
+      
+        pointsOption match {
+          case Some(pf) => pf map {
+            p => Ok(views.html.answer("correct", p))
+          }
+          case None => Future.successful(Ok(views.html.error()))
+        } 
       }
-      case None => Future.successful(Ok(views.html.error()))
-    } 
-    
+      case 0 => {
+        val userFound = for {
+          name <- request.session.get(models.Global.SESSION_USERNAME_KEY)
+        } yield for {
+          user <- userMongoController.lookupUser(name) flatMap (
+            // handle Option (Future[Option[User]] => Future[User])
+            _.map(user => Future.successful(user))
+            .getOrElse(Future.failed(new RuntimeException("Could not find user")))
+          )
+        } yield user 
+        userFound.map(_.map {
+          user => Ok(views.html.answer("wrong", user.points))
+        }).getOrElse(Future.successful(Ok(views.html.error())))
+      }
+    }
   }
 
 
