@@ -71,21 +71,21 @@ class UserMongoController @Inject()(
         }
     }
 
+    def getUserList(query: JsObject) : Future[List[User]] = for {
+        col <- userCollection
+        users <- col.find(query)
+            .sort(Json.obj("points" -> -1))
+            .cursor[User]()
+            .collect[List](-1, Cursor.FailOnError[List[User]]())
+    } yield users
+
     def getRankList = Action.async {
-        val userList = for {
-            col <- userCollection
-            users <- col.find(Json.obj())
-                .sort(Json.obj("points" -> -1))
-                .cursor[User]()
-                .collect[List](-1, Cursor.FailOnError[List[User]]())
-        } yield users
-        userList map {
+        getUserList(Json.obj()) map {
             ul => Ok(views.html.ranking(ul))
         } recover {
             case _ => Ok(views.html.error())
-        }
-            
-    }  
+        }    
+    }
 
     implicit val newsFormat = Json.format[News]
     def getNewsForUser(user: String) : Future[List[News]] = {
@@ -97,7 +97,30 @@ class UserMongoController @Inject()(
                 .collect[List](-1, Cursor.FailOnError[List[News]]())
         } yield news
         newsList    
-    }  
-  
+    }
+
+    def insertNewsForUser(user: String, text: String) = {
+        val newsToInsert = Json.obj(
+            "user" -> user,
+            "text" -> text,
+            "date" -> System.currentTimeMillis(),
+        )
+        for {
+            col <- newsCollection
+            insertRes <- col.insert(newsToInsert)
+        } yield insertRes
+    }
+
+    // def bulkInsertNews(usernames: List[String], text: String) = {
+    //     val newsToInsert = usernames.map(user => Json.obj(
+    //         "user" -> user,
+    //         "text" -> text,
+    //         "date" -> Instant.now.getEpochSecond,
+    //     ))
+    //     for {
+    //         col <- newsCollection
+    //         insertRes <- col.bulkInsert(newsToInsert)
+    //     } yield insertRes
+    // }
 
 }

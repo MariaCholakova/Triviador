@@ -114,19 +114,33 @@ class LandingPageController @Inject()(
           case "hard" => 15
           case _ => 0
         }
-        val pointsOption = for {
-          username <- request.session.get(models.Global.SESSION_USERNAME_KEY)
-        } yield for {
-          points <- userMongoController.increasePoints(username, pointsWon)
-        } yield points
-      
-        pointsOption match {
-          case Some(pf) => pf map {
-            p => Ok(views.html.answer("correct", p))
+        val maybeUsername = request.session.get(models.Global.SESSION_USERNAME_KEY)
+        maybeUsername match {
+          case None => {
+              Future.successful(Forbidden("Dude, you’re not logged in."))
           }
-          case None => Future.successful(Ok(views.html.error()))
-        } 
+          case Some(username) => {
+            userMongoController.increasePoints(username, pointsWon) map {
+              newPoints => {
+                val insertNews =  for {
+                  allBehind <- userMongoController
+                    .getUserList(Json.obj("points" -> Json.obj("$lt" -> newPoints)))
+                val outrunUsers = allBehind.filter(user => newPoints - user.points < pointsWon)
+                  .map(_.username)
+                inserts <- Future.sequence(
+                  outrunUsers.map(user => 
+                    userMongoController.insertNewsForUser(user, s"User $username moved ahead you in the rank list :("))
+                  ) 
+                } yield inserts
+                
+                Ok(views.html.answer("correct", newPoints))
+              }
+            }
+                
+          } 
+        }
       }
+
       case 0 => {
         val userFound = for {
           name <- request.session.get(models.Global.SESSION_USERNAME_KEY)
@@ -143,7 +157,6 @@ class LandingPageController @Inject()(
       }
     }
   }
-
 
 }
 
