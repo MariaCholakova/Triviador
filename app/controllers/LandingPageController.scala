@@ -33,71 +33,64 @@ class LandingPageController @Inject()(
     userMongoController: UserMongoController
 ) extends AbstractController(cc) {
 
-    private val logoutUrl = routes.AuthenticatedUserController.logout
+  private val logoutUrl = routes.AuthenticatedUserController.logout
 
-    // this is where the user comes immediately after logging in.
-    // notice that this uses `authenticatedUserAction`.
-    def showLandingPage() = authenticatedUserAction.async { implicit request: Request[AnyContent] =>
-      // fetch new for the user
-      val userNews = for {
-        username <- Future.successful(request.session.get(models.Global.SESSION_USERNAME_KEY))
-        news <- userMongoController.getNewsForUser(username.get)
-      } yield news
-      userNews.map {
-        news => Ok(views.html.loginLandingPage(news, logoutUrl))
-      } recover {
-        case _ => Ok(views.html.error())
-      }
+  // this is where the user comes immediately after logging in.
+  // notice that this uses `authenticatedUserAction`.
+  def showLandingPage() = authenticatedUserAction.async { implicit request: Request[AnyContent] =>
+    // fetch new for the user
+    val userNews = for {
+      username <- Future.successful(request.session.get(models.Global.SESSION_USERNAME_KEY))
+      news <- userMongoController.getNewsForUser(username.get)
+    } yield news
+    userNews.map {
+      news => Ok(views.html.loginLandingPage(news, logoutUrl))
+    } recover {
+      case _ => Ok(views.html.error())
     }
+  }
 
-    def getRandomElement(list: Seq[Int], random: Random): Int = 
+  private def getRandomElement(list: Seq[Int], random: Random): Int = 
     list(random.nextInt(list.length))
 
-    val questionForm: Form[QuestionParam] = Form {
-        mapping (
-        "difficulty" -> text,
-        "choice" -> text
-        ) (QuestionParam.apply _) (QuestionParam.unapply _)
-    }
-
   implicit val questionReads = Json.reads[Question]
+  val questionForm: Form[QuestionParam] = Form {
+    mapping (
+    "difficulty" -> text,
+    "choice" -> text
+    ) (QuestionParam.apply _) (QuestionParam.unapply _)
+  }
 
   def question = authenticatedUserAction.async { implicit request: Request[AnyContent] =>
     val questionParam =  questionForm.bindFromRequest.get
-    println(questionParam)
     val url = "https://opentdb.com/api.php"
-    ws.url(url).addQueryStringParameters(
+    for {
+      resp <- ws.url(url).addQueryStringParameters(
         "amount" -> "1",
         "category" ->  getRandomElement(List.range(17,29,1), new Random).toString,
         "difficulty" -> questionParam.difficulty,
         "type" -> questionParam.choice
-      ).get().map(
-        resp => {
-          (resp.json \ "response_code").validate[Int].get match {
-            case 0 => (resp.json \ "results").validate[List[Question]] match {
-              case s: JsSuccess[List[Question]] => {
-                val qs: List[Question] = s.get
-                println(qs)
-                val answers = qs(0).incorrect_answers.map(str => Answer(str, 0)) ++ 
-                  List(Answer(qs(0).correct_answer, 1))
-                Ok(views.html.question(qs(0), Random.shuffle(answers)))
-              }
-              case e: JsError => Ok(views.html.error())
-            }
-            case _ => Ok(views.html.error())
-          }
-          
+      ).get() 
+      val responseCode = (resp.json \ "response_code").as[Int]
+      val page = responseCode match { 
+        case 0 => {
+          val questionsList = (resp.json \ "results").as[List[Question]]
+          val question = questionsList(0)
+          val answers = question.incorrect_answers
+            .map(text => Answer(text, 0)) ++ List(Answer(question.correct_answer, 1))
+          Ok(views.html.question(question, Random.shuffle(answers)))
         }
-      )
-
+        case _ => Ok(views.html.error())
+      }
+    } yield page
   }
 
   val answerForm: Form[AnswerParam] = Form {
-        mapping (
-        "difficulty" -> text,
-        "isCorrect" -> number
-        ) (AnswerParam.apply _) (AnswerParam.unapply _)
-    }
+    mapping (
+    "difficulty" -> text,
+    "isCorrect" -> number
+    ) (AnswerParam.apply _) (AnswerParam.unapply _)
+  }
   def processAnswer = Action.async { implicit request: Request[AnyContent] =>
     val answer =  answerForm.bindFromRequest.get
 
