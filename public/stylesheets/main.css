@@ -24,16 +24,16 @@
     margin: 0;
 }
 
-.text-center {
-    text-align: center;
-}
-
 .center {
     margin: auto;
     width: 90%;
 }
 
-#rankingTitle {
+.text-center {
+    text-align: center;
+}
+
+.ranking-center {
     text-align: center;
     width: 70%;
 }

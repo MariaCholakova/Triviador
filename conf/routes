@@ -21,5 +21,9 @@ GET  /landingPage               controllers.LandingPageController.showLandingPag
 GET     /question               controllers.LandingPageController.question
 GET     /answer                 controllers.LandingPageController.processAnswer
 
+# chat
+GET     /ws                     controllers.ChatController.socket
+
+
 
 

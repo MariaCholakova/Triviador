@@ -9,7 +9,7 @@
 </head>
 <body>
     <div class="center">
-        <h1 id="rankingTitle">RANK LIST</h1>
+        <h1 class="ranking-center">RANK LIST</h1>
         <table>
             <tr>
                 <th>User</th>
@@ -22,6 +22,9 @@
                 </tr>
             }
         </table>
+        <form class="ranking-center" action="@controllers.routes.LandingPageController.showLandingPage()">
+            <button>Back To Home</button>
+        </form>
     </div>
 
     

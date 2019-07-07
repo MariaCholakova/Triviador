@@ -1,9 +1,18 @@
-@(news: List[News], logoutUrl: Call)(implicit flash: Flash)
+@(news: List[News], logoutUrl: Call)(implicit flash: Flash, request: RequestHeader)
 
 @main("Welcome to Play") {
-    
-    <div class="center">
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
+        <script type='text/javascript' src="@routes.Assets.versioned("javascripts/jquery-3.4.1.min.js")"></script>
+        <script type='text/javascript' src="@routes.Assets.versioned("javascripts/loginLandingPage.js")"></script>
+    </head>
+    <body class="center">
         <h1> @flash.get("info").getOrElse("")</h1>
+        <a href="@controllers.routes.UserMongoController.getRankList()">Rank List</a>
+        <a href="@logoutUrl">Log Out</a>
+        <br/>
         <h3>News</h3>
         <table>
             @for(newsEntry <- news) {
@@ -25,8 +34,12 @@
             <button>Get question</button>
         </form>
         <br/>
-        <a href="@controllers.routes.UserMongoController.getRankList()">Rank List</a>
-        <a href="@logoutUrl">Log Out</a>
-    </div>
+        <form id="chatForm" data-ws-url="@routes.ChatController.socket.webSocketURL()">
+            You: <input id="myMsg" type="text"><br>
+            Other: <span id="receivedMsg"></span> 
+            <br/>
+            <button>Send</button>
+        </form>
+    </body>
 
 }
