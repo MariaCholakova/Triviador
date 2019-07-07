@@ -40,19 +40,14 @@ class LandingPageController @Inject()(
     def showLandingPage() = authenticatedUserAction.async { implicit request: Request[AnyContent] =>
       // fetch new for the user
       val userNews = for {
-        name <- request.session.get(models.Global.SESSION_USERNAME_KEY)
-      } yield for {
-        user <- userMongoController.lookupUser(name) flatMap (
-          // handle Option (Future[Option[User]] => Future[User])
-          _.map(user => Future.successful(user))
-          .getOrElse(Future.failed(new RuntimeException("Could not find user")))
-        )
-        news <- userMongoController.getNewsForUser(user.username)
-      } yield news 
-      userNews.map(_.map (
-        news =>  Ok(views.html.loginLandingPage(news, logoutUrl))
-      )).getOrElse(Future.successful(Ok(views.html.error())))
-      
+        username <- Future.successful(request.session.get(models.Global.SESSION_USERNAME_KEY))
+        news <- userMongoController.getNewsForUser(username.get)
+      } yield news
+      userNews.map {
+        news => Ok(views.html.loginLandingPage(news, logoutUrl))
+      } recover {
+        case _ => Ok(views.html.error())
+      }
     }
 
     def getRandomElement(list: Seq[Int], random: Random): Int = 
@@ -114,48 +109,27 @@ class LandingPageController @Inject()(
           case "hard" => 15
           case _ => 0
         }
-        val maybeUsername = request.session.get(models.Global.SESSION_USERNAME_KEY)
-        maybeUsername match {
-          case None => {
-              Future.successful(Forbidden("Dude, you’re not logged in."))
-          }
-          case Some(username) => {
-            userMongoController.increasePoints(username, pointsWon) map {
-              newPoints => {
-                val insertNews =  for {
-                  allBehind <- userMongoController
-                    .getUserList(Json.obj("points" -> Json.obj("$lt" -> newPoints)))
-                val outrunUsers = allBehind.filter(user => 
-                  newPoints - user.points <= pointsWon && user.username != username
-                ).map(_.username)
-                inserts <- Future.sequence(
-                  outrunUsers.map(user => 
-                    userMongoController.insertNewsForUser(user, s"User $username moved ahead of you in the rank list :("))
-                  ) 
-                } yield inserts
-                
-                Ok(views.html.answer("correct", newPoints))
-              }
-            }
-                
-          } 
-        }
-      }
-
-      case 0 => {
-        val userFound = for {
-          name <- request.session.get(models.Global.SESSION_USERNAME_KEY)
-        } yield for {
-          user <- userMongoController.lookupUser(name) flatMap (
-            // handle Option (Future[Option[User]] => Future[User])
-            _.map(user => Future.successful(user))
-            .getOrElse(Future.failed(new RuntimeException("Could not find user")))
-          )
-        } yield user 
-        userFound.map(_.map {
-          user => Ok(views.html.answer("wrong", user.points))
-        }).getOrElse(Future.successful(Ok(views.html.error())))
-      }
+        for {
+          username <- Future.successful(request.session.get(models.Global.SESSION_USERNAME_KEY))
+          val thisUser = username.get
+          newPoints <- userMongoController.increasePoints(thisUser, pointsWon)
+          allBehind <- userMongoController.getUserList(Json.obj("points" -> Json.obj("$lt" -> newPoints)))
+          val outrunUsers = allBehind
+            .filter(user => newPoints - user.points <= pointsWon && user.username != thisUser)
+            .map(_.username)
+          inserts <- Future.sequence(
+            outrunUsers.map(user => 
+              userMongoController.insertNewsForUser(user, s"User $thisUser moved ahead of you in the rank list :(")
+            )
+          ) 
+        } yield Ok(views.html.answer("correct", newPoints))
+      }     
+      
+      case 0 => for {
+        username <- Future.successful(request.session.get(models.Global.SESSION_USERNAME_KEY))
+        user <- userMongoController.getUser(username.get)
+      } yield Ok(views.html.answer("wrong", user.points))
+      
     }
   }
 
