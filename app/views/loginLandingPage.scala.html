@@ -6,6 +6,7 @@
     <head>
         <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
         <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/difficulty.css")">
+        <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/chat.css")">
         <script type='text/javascript' src="@routes.Assets.versioned("javascripts/jquery-3.4.1.min.js")"></script>
         <script type='text/javascript' src="@routes.Assets.versioned("javascripts/loginLandingPage.js")"></script>
     </head>
@@ -43,12 +44,26 @@
                 </button>
         </form>
         <br/>
-        <form id="chatForm" data-ws-url="@routes.ChatController.socket.webSocketURL()">
-            You: <input id="myMsg" type="text"><br>
-            Other: <span id="receivedMsg"></span> 
-            <br/>
-            <button>Send</button>
-        </form>
+      
+
+        <button id="openChat" class="open-button">Chat</button>
+
+        <div id="myForm" class="chat-popup" id="myForm">
+            <form id="chatForm" data-ws-url="@routes.ChatController.socket.webSocketURL()"
+            class="form-container">
+                <h1>Chat</h1>
+
+                <label for="msg"><b>Message</b></label><br>
+                <!-- You: <input id="myMsg" type="text" required><br> -->
+                <textarea id="myMsg" placeholder="Type message.." name="msg" required></textarea>
+                Other: <span id="receivedMsg"></span> 
+                <br/>
+
+                <button type="submit" class="btn">Send</button>
+                <button id="closeChat" type="button" class="btn cancel">Close</button>
+            </form>
+        </div>
     </body>
+    </html>
 
 }

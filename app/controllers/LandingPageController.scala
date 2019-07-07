@@ -125,8 +125,9 @@ class LandingPageController @Inject()(
                 val insertNews =  for {
                   allBehind <- userMongoController
                     .getUserList(Json.obj("points" -> Json.obj("$lt" -> newPoints)))
-                val outrunUsers = allBehind.filter(user => newPoints - user.points <= pointsWon)
-                  .map(_.username)
+                val outrunUsers = allBehind.filter(user => 
+                  newPoints - user.points <= pointsWon && user.username != username
+                ).map(_.username)
                 inserts <- Future.sequence(
                   outrunUsers.map(user => 
                     userMongoController.insertNewsForUser(user, s"User $username moved ahead of you in the rank list :("))

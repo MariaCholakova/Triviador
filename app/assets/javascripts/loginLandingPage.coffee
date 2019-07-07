@@ -7,3 +7,11 @@ $ ->
         submitEvent.preventDefault();
         ws.send($("#myMsg").val())
 
+    $("#openChat").click ->
+        console.log("show")
+        $("#myForm").show()
+
+    $("#closeChat").click ->
+        $("#myForm").hide()
+
+

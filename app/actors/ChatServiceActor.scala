@@ -10,7 +10,7 @@ class ChatServiceActor(out: ActorRef) extends Actor {
   def receive: Receive = {
     case msg: String => {
       println (msg)
-      out ! ("I received your message: " + msg)
+      out ! msg
     }
   }
 
