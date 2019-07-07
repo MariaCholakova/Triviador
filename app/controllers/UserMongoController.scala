@@ -34,6 +34,12 @@ class UserMongoController @Inject()(
         database.map(_.collection[JSONCollection]("news"))
 
     implicit val userFormat = Json.format[User]
+    def getUser(username: String): Future[User] = {
+        lookupUser(username) map {
+            option => option.get
+        }
+    }
+
     def lookupUser(username: String, password: String = ""): Future[Option[User]] = {
         val query = if (password != "") Json.obj("username" -> username,"password" -> password)
             else Json.obj("username" -> username)
@@ -45,30 +51,18 @@ class UserMongoController @Inject()(
     }
 
     def increasePoints(username: String, pointsToAdd: Int) : Future[Int] = {
-
         def modifier(points: Int) = Json.obj (
             "$set" -> Json.obj (
                 "points" -> points,
             )
         )
         val selector = Json.obj("username" -> username)
-
-        val userOption = for {
+        for {
+            user <- getUser(username)
+            val newPoints = user.points + pointsToAdd
             col <- userCollection
-            findOption <- col.find(selector).one[User]
-        } yield findOption
-
-        userOption map {
-            case Some(User(a, b, points)) => {
-                val newPoints = points + pointsToAdd
-                println(newPoints)
-                userCollection.map(_.update.one(selector, modifier(newPoints),
-                    upsert = false, multi = false
-                ))
-                newPoints
-            }
-            case None => 0
-        }
+            updateRes = col.update.one(selector,modifier(newPoints), upsert = false, multi = false)
+        } yield newPoints
     }
 
     def getUserList(query: JsObject) : Future[List[User]] = for {

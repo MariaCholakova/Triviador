@@ -67,7 +67,7 @@ class LandingPageController @Inject()(
 
   implicit val questionReads = Json.reads[Question]
 
-  def question = Action.async { implicit request: Request[AnyContent] =>
+  def question = authenticatedUserAction.async { implicit request: Request[AnyContent] =>
     val questionParam =  questionForm.bindFromRequest.get
     println(questionParam)
     val url = "https://opentdb.com/api.php"
