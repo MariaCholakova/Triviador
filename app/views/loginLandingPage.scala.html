@@ -5,6 +5,7 @@
     <html lang="en">
     <head>
         <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
+        <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/difficulty.css")">
         <script type='text/javascript' src="@routes.Assets.versioned("javascripts/jquery-3.4.1.min.js")"></script>
         <script type='text/javascript' src="@routes.Assets.versioned("javascripts/loginLandingPage.js")"></script>
     </head>
@@ -25,13 +26,21 @@
         <br/>
         <h3>Choose question</h3>
         <form action="@controllers.routes.LandingPageController.question()">
-            <input type="radio" name="difficulty" value="easy" checked> Easy
-            <input type="radio" name="difficulty" value="medium"> Medium
-            <input type="radio" name="difficulty" value="hard"> Hard <br/>
-            <h3>Select type:</h3>
-            <input type="radio" name="choice" value="multiple" checked> Multiple choice
-            <input type="radio" name="choice" value="boolean"> True/False <br/>
-            <button>Get question</button>
+                <button type="submit" class="easy"> 
+                    <input type="hidden" name="difficulty" value="easy">
+                    <input type="hidden" name="choice" value="multiple">
+                    Easy
+                </button>
+                <button type="submit" class="medium">
+                    <input type="hidden" name="difficulty" value="medium">
+                    <input type="hidden" name="choice" value="multiple">
+                    Medium
+                </button>
+                <button type="submit" class="hard">
+                    <input type="hidden" name="difficulty" value="hard">
+                    <input type="hidden" name="choice" value="multiple">
+                    Hard
+                </button>
         </form>
         <br/>
         <form id="chatForm" data-ws-url="@routes.ChatController.socket.webSocketURL()">

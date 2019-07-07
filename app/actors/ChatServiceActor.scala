@@ -14,7 +14,7 @@ class ChatServiceActor(out: ActorRef) extends Actor {
     }
   }
 
-//   override def postStop() {
-//     println("Closing the websocket connection.")
-//   }
+  override def postStop() {
+    println("Closing the websocket connection.")
+  }
 }
