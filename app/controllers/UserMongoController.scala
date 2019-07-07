@@ -5,7 +5,7 @@ import models.{ Global, User, LoginUser, News }
 import scala.concurrent.{ ExecutionContext, Future }
 
 import play.api.Logger
-import play.api.mvc.{ AbstractController, ControllerComponents }
+import play.api.mvc.{ AbstractController, ControllerComponents, Request, AnyContent }
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
@@ -73,7 +73,7 @@ class UserMongoController @Inject()(
             .collect[List](-1, Cursor.FailOnError[List[User]]())
     } yield users
 
-    def getRankList = Action.async {
+    def getRankList = Action.async { implicit request: Request[AnyContent] =>
         getUserList(Json.obj()) map {
             ul => Ok(views.html.ranking(ul))
         } recover {

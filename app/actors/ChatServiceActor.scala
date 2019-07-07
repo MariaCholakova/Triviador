@@ -1,6 +1,7 @@
 package actors
 
 import akka.actor.{Actor, ActorRef, PoisonPill, Props}
+import play.api.libs.json._
 
 object ChatServiceActor {
   def props(out: ActorRef) = Props(new ChatServiceActor(out))
@@ -9,8 +10,11 @@ object ChatServiceActor {
 class ChatServiceActor(out: ActorRef) extends Actor {
   def receive: Receive = {
     case msg: String => {
-      println (msg)
-      out ! msg
+      val jsonMsg = Json.parse(msg)
+      val receiver = (jsonMsg \ "receiver").as[String]
+      println(receiver)
+      val text = (jsonMsg \ "text").as[String]
+      out ! text
     }
   }
 

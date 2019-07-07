@@ -1,11 +1,12 @@
-@(users: List[User])
+@(users: List[User])(implicit request: RequestHeader)
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">
-    <script>
-    </script>
+    <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/chat.css")">
+    <script type='text/javascript' src="@routes.Assets.versioned("javascripts/jquery-3.4.1.min.js")"></script>
+    <script type='text/javascript' src="@routes.Assets.versioned("javascripts/chatForm.js")"></script>
 </head>
 <body>
     <div class="center">
@@ -14,16 +15,37 @@
             <tr>
                 <th>User</th>
                 <th>Points</th>
+                <th></th>
             </tr>
             @for(user <- users) {
                 <tr>
-                <td>@user.username</td>
-                <td>@user.points</td>
+                    <td>@user.username</td>
+                    <td>@user.points</td>
+                    <td>
+                        <button id="@user.username" class="start-chat-button">Send Message</button>
+                    </td>
                 </tr>
             }
         </table>
         <form class="ranking-center" action="@controllers.routes.LandingPageController.showLandingPage()">
             <button>Back To Home</button>
+        </form>
+    </div>
+
+    <div id="myForm" class="chat-popup" id="myForm">
+        <form id="chatForm" data-ws-url="@routes.ChatController.socket.webSocketURL()"
+        class="form-container">
+            <h1>Chat</h1>
+
+            <label for="msg"><b>Message</b></label><br>
+            <textarea id="myMsg" placeholder="Type message.." name="msg" required></textarea>
+            <span id="receiver" class="bold"></span>:
+            <span id="receiverMsg"></span> 
+            <br/>
+            <br/>
+
+            <button type="submit" class="btn">Send</button>
+            <button id="closeChat" type="button" class="btn cancel">Close</button>
         </form>
     </div>
 
